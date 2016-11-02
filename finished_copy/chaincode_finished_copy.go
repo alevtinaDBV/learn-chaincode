@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -40,7 +41,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
 
-	err := stub.PutState("hello_world", []byte(args[0]))
+	err := stub.PutState("patientTest", []byte(args[0]))
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 // write - invoke function to write key/value pair
 func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var key, value string
+	var key, valueBefCod string
 	var err error
 	fmt.Println("running write()")
 
@@ -87,7 +88,10 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	}
 
 	key = args[0] //rename for funsies
-	value = args[1]
+	// encode
+	valueBefCod = args[1]
+	value := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
+
 	err = stub.PutState(key, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
