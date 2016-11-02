@@ -17,9 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"encoding/base64"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -34,15 +34,6 @@ func main() {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
-//encode/decode
-func base64Encode(src []byte) []byte {
-    return []byte(base64.StdEncoding.EncodeToString(src))
-}
-
-func base64Decode(src []byte) ([]byte, error) {
-    return base64.StdEncoding.DecodeString(string(src))
-}
-
 
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
@@ -88,7 +79,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 // write - invoke function to write key/value pair
 func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var key, value, valueBefCod string
+	var key, valueBefCod string
 	var err error
 	fmt.Println("running write()")
 
@@ -98,9 +89,9 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 
 	key = args[0] //rename for funsies
 	// encode
-    valueBefCod := args[1]
-    value := base64Encode([]byte(valueBefCod))
-  
+	valueBefCod = args[1]
+	value := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
+
 	err = stub.PutState(key, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
