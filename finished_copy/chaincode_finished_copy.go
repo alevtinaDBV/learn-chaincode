@@ -37,9 +37,9 @@ type PatientTest struct {
 	GeneralInfo   string `json:"generalInfo"`
 	PersonalInfo  string `json:"personalInfo"`
 	VarianEntries []struct {
-		Date        time.Time `json:"date"`
-		MedicalData string    `json:"medicalData"`
-		VarianNode  string    `json:"varianNode"`
+		Date        string `json:"date"`
+		MedicalData string `json:"medicalData"`
+		VarianNode  string `json:"varianNode"`
 	} `json:"varianEntries"`
 }
 
@@ -152,7 +152,7 @@ func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]b
 	patientP.GeneralInfo = "PID"
 	patientP.PersonalInfo = "empty"
 	varEntry.VarianNode = args[1]
-	varEntry.Date = time.Now()
+	varEntry.Date = time.Now().String()
 	varEntry.MedicalData = args[2]
 	encBuf := new(bytes.Buffer)
 	errrNewEnc := gob.NewEncoder(encBuf).Encode(patientToWrite)
