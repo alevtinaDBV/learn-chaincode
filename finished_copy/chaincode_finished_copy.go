@@ -118,7 +118,7 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	//	var msg = "message"
 	var iv = []byte(keyforAES)[:aes.BlockSize] // Using IV same as key is probably bad
 	var errr error
-	fmt.Printf("Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefEnc)
+	fmt.Printf("!Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefEnc)
 	// Encrypt
 	value := make([]byte, len(valueBefEnc))
 	errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(keyforAES), iv)
