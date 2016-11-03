@@ -19,6 +19,7 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -35,6 +36,7 @@ func main() {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
+
 func EncryptAESCFB(dst, src, key, iv []byte) error {
 	aesBlockEncrypter, err := aes.NewCipher([]byte(key))
 	if err != nil {
@@ -100,7 +102,7 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	key = args[0] //rename for funsies
 	// encode
 	valueBefCod = args[1]
-	//valueBefEnc := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
+	valueBefEnc := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
 
 	//	err = stub.PutState(key, []byte(valueBefEnc)) //write the variable into the chaincode state
 	//if err != nil {
@@ -116,11 +118,11 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	//	var msg = "message"
 	var iv = []byte(keyforAES)[:aes.BlockSize] // Using IV same as key is probably bad
 	var errr error
-	fmt.Printf("Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefCod)
+	fmt.Printf("Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefEnc)
 	// Encrypt
-	value := make([]byte, len(valueBefCod))
-	errr = EncryptAESCFB(value, []byte(valueBefCod), []byte(keyforAES), iv)
-	fmt.Printf("Encrypting %v %v %s -> %v\n", keyforAES, []byte(iv), valueBefCod, value)
+	value := make([]byte, len(valueBefEnc))
+	errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(keyforAES), iv)
+	fmt.Printf("Encrypting %v %v %s -> %v\n", keyforAES, []byte(iv), valueBefEnc, value)
 	if errr != nil {
 		panic(errr)
 	}
