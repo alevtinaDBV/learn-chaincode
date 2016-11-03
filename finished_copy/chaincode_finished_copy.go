@@ -108,17 +108,20 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 			&shim.Column{Value: &shim.Column_String_{String_: a}},
 			&shim.Column{Value: &shim.Column_String_{String_: b}}},
 	})
+
 	if !ok && err == nil {
 
 		return nil, errors.New("new error")
 	}
+
+	fmt.Println("arg1", a)
 	return nil, nil
 }
 
 // read - query function to read key/value pair
 func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var key string
-
+	fmt.Println("running read()")
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
 	}
@@ -130,6 +133,11 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	col1 := shim.Column{Value: &shim.Column_String_{String_: accountID}}
 	columns = append(columns, col1)
 	fmt.Println("smth is going on, reading")
-	fmt.Println(stub.GetRow(key, columns))
-	return nil, nil
+	val, errrr := stub.GetRow(key, columns)
+	if errrr == nil {
+		fmt.Println("raw exists")
+	} else {
+		fmt.Println("ERROR")
+	}
+	return []byte(val.String()), nil
 }
