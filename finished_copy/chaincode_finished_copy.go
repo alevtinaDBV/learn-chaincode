@@ -134,6 +134,19 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 // writeNew - invoke function to write new patient
 func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	data := []byte(`
+			{
+		"generalInfo": "PID",
+		"personalInfo" : "somePersonalEncrypted",
+		"varianEntries":
+		[
+		{
+		"varianNode": "var1",
+		"date": "2006-01-02T15:04:05" ,
+		"medicalData": "patient is healthy"	}
+		]
+	}
+	`)
 	var key string
 	var err error
 	var patientToWrite PatientTest
@@ -147,6 +160,10 @@ func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]b
 
 	fmt.Println("no record found")
 	var newpt PatientTest
+	errUnm2 := json.Unmarshal(data, &newpt)
+	if errUnm2 != nil {
+		fmt.Printf("Error: %s", errUnm2)
+	}
 	patientP := &newpt
 	varEntry := &patientP.VarianEntries[0]
 	patientP.GeneralInfo = "PID"
