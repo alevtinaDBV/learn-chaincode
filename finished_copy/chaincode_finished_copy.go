@@ -17,17 +17,30 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
+}
+type PatientTest struct {
+	GeneralInfo   string `json:"generalInfo"`
+	PersonalInfo  string `json:"personalInfo"`
+	VarianEntries []struct {
+		Date        string `json:"date"`
+		MedicalData string `json:"medicalData"`
+		VarianNode  string `json:"varianNode"`
+	} `json:"varianEntries"`
 }
 
 func main() {
@@ -49,11 +62,41 @@ func EncryptAESCFB(dst, src, key, iv []byte) error {
 
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	if len(args) != 4 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	}
+	data := []byte(`
+	    {
+		"generalInfo": "PID",
+		"personalInfo" : "somePersonalEncrypted",
+		"varianEntries":
+		[
+		{
+		"varianNode": "var1",
+		"date": "01.11.2016",
+		"medicalData": "patient is healthy"	}
+		]
+	}
+	`)
+	var pt PatientTest
+	errUnm := json.Unmarshal(data, &pt)
+	if errUnm != nil {
+		fmt.Printf("Error: %s", errUnm)
+	}
+	patient := &pt
+
+	//	fmt.Printf("generalInfo: %s", patient.GeneralInfo)
+
+	encBuf := new(bytes.Buffer)
+	errrNewEnc := gob.NewEncoder(encBuf).Encode(patient)
+	if errrNewEnc != nil {
+		log.Fatal(errrNewEnc)
 	}
 
-	err := stub.PutState("patientTest", []byte(args[0]))
+	valueInit := encBuf.Bytes()
+
+	fmt.Println("encodedPatient", valueInit)
+	err := stub.PutState(args[0], valueInit)
 	if err != nil {
 		return nil, err
 	}
