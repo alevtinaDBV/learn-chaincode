@@ -1,13 +1,12 @@
 {
-	"generalInfo": 'STRING',
-	"personalInfo" : 'STRING',
+	"generalInfo": "PID",
+	"personalInfo" : "somePersonalEncrypted",
 	"varianEntries":
 	[
 	{
-	"varianNode": 'STRING',
-	"date": 'STRING',
-	"medicalData": 'STRING'
-	}
+	"varianNode": "var1",
+	"date": "01.11.2016",
+	"medicalData": "patient is healthy"	}
 	]
 }
 
