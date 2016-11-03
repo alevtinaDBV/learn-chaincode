@@ -118,8 +118,8 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	var errr error
 	fmt.Printf("Encrypting %v %v %s -> %v\n", keyforAES, []byte(iv), valueBefCod, valueBefEnc)
 	// Encrypt
-	value := make([]byte, len(valueBefEnc))
-	errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(keyforAES), iv)
+	value := make([]byte, len(valueBefCod))
+	errr = EncryptAESCFB(value, []byte(valueBefCod), []byte(keyforAES), iv)
 	if errr != nil {
 		panic(errr)
 	}
