@@ -1,0 +1,13 @@
+{
+	"generalInfo": 'STRING',
+	"personalInfo" : 'STRING',
+	"varianEntries":
+	[
+	{
+	"varianNode": 'STRING',
+	"date": 'STRING',
+	"medicalData": 'STRING'
+	}
+	]
+}
+
