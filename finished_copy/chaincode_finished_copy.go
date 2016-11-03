@@ -17,6 +17,8 @@ limitations under the License.
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -33,6 +35,15 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
+}
+func EncryptAESCFB(dst, src, key, iv []byte) error {
+	aesBlockEncrypter, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return err
+	}
+	aesEncrypter := cipher.NewCFBEncrypter(aesBlockEncrypter, iv)
+	aesEncrypter.XORKeyStream(dst, src)
+	return nil
 }
 
 // Init resets all the things
@@ -90,12 +101,30 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 	key = args[0] //rename for funsies
 	// encode
 	valueBefCod = args[1]
-	value := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
+	valueBefEnc := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
 
-	err = stub.PutState(key, []byte(value)) //write the variable into the chaincode state
+	err = stub.PutState(key, []byte(valueBefEnc)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
 	}
+
+	//encryption
+	const key16 = "1234567890123456"
+	//const key24 = "123456789012345678901234"
+	//const key32 = "12345678901234567890123456789012"
+	var keyforAES = key16
+	//	var msg = "message"
+	var iv = []byte(keyforAES)[:aes.BlockSize] // Using IV same as key is probably bad
+	var errr error
+
+	// Encrypt
+	value := make([]byte, len(valueBefEnc))
+	errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(key), iv)
+	if errr != nil {
+		panic(err)
+	}
+	//	fmt.Printf("Encrypting %v %s -> %v\n", []byte(msg), msg, encrypted)
+
 	return nil, nil
 }
 
@@ -109,11 +138,11 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	}
 
 	key = args[0]
-	valAsbytes, err := stub.GetState(key)
+	valAsBytes, err := stub.GetState(key)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	return valAsbytes, nil
+	return valAsBytes, nil
 }
