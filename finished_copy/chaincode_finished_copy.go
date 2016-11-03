@@ -129,6 +129,7 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	var columns []shim.Column
 	col1 := shim.Column{Value: &shim.Column_String_{String_: accountID}}
 	columns = append(columns, col1)
+	fmt.Println("smth is going on, reading")
 	fmt.Println(stub.GetRow(key, columns))
 	return nil, nil
 }
