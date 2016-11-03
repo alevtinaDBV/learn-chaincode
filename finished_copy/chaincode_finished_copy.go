@@ -73,7 +73,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 		[
 		{
 		"varianNode": "var1",
-		"date": "2006-01-02T15:04:05Z07:00" ,
+		"date": "2006-01-02T15:04:05" ,
 		"medicalData": "patient is healthy"	}
 		]
 	}
