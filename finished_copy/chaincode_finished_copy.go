@@ -149,7 +149,6 @@ func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]b
 	`)
 	var key string
 	var err error
-	var patientToWrite PatientTest
 	fmt.Println("running write()")
 
 	if len(args) != 3 {
@@ -172,7 +171,7 @@ func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]b
 	varEntry.Date = time.Now().String()
 	varEntry.MedicalData = args[2]
 	encBuf := new(bytes.Buffer)
-	errrNewEnc := gob.NewEncoder(encBuf).Encode(patientToWrite)
+	errrNewEnc := gob.NewEncoder(encBuf).Encode(patientP)
 	if errrNewEnc != nil {
 		log.Fatal(errrNewEnc)
 	}
