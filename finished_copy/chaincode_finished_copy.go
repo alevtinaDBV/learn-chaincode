@@ -27,7 +27,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/core/chaincode_copy/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation
