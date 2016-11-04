@@ -24,7 +24,7 @@ import (
 )
 
 // SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
+type depositoryHandler struct {
 }
 type PatientTest struct {
 	GeneralInfo   string `json:"generalInfo"`
@@ -41,15 +41,18 @@ const (
 	columnContactInfo = "ContactInfo"
 )
 
+func NewDepositoryHandler() *depositoryHandler {
+	return &depositoryHandler{}
+}
 func main() {
-	err := shim.Start(new(SimpleChaincode))
+	err := NewDepositoryHandler()
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
 
 // Init resets all the things
-func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *depositoryHandler) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
@@ -66,7 +69,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	return nil, nil
 }
 
-func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *depositoryHandler) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("invoke is running " + function)
 
 	// Handle different functions
@@ -80,18 +83,13 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	return nil, errors.New("Received unknown function invocation: " + function)
 }
 
-func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *depositoryHandler) Query(stub *shim.ChaincodeStub, function string, args []string) (shim.Row, error) {
 	fmt.Println("query is running " + function)
 
-	// Handle different functions
-	if function == "read" { //read a variable
-		return t.read(stub, args)
-	}
-	fmt.Println("query did not find func: " + function)
+	return t.read(stub, args)
 
-	return nil, errors.New("Received unknown function query: " + function)
 }
-func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *depositoryHandler) write(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var key string
 	var err error
 	fmt.Println("running write()")
@@ -119,12 +117,9 @@ func (t *SimpleChaincode) write(stub *shim.ChaincodeStub, args []string) ([]byte
 }
 
 // read - query function to read key/value pair
-func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *depositoryHandler) read(stub *shim.ChaincodeStub, args []string) (shim.Row, error) {
 	var key string
 	fmt.Println("running read()")
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
-	}
 
 	key = args[0]
 	accountID := args[1]
@@ -133,11 +128,6 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	col1 := shim.Column{Value: &shim.Column_String_{String_: accountID}}
 	columns = append(columns, col1)
 	fmt.Println("smth is going on, reading")
-	val, errrr := stub.GetRow(key, columns)
-	if errrr == nil {
-		fmt.Println("raw exists")
-	} else {
-		fmt.Println("ERROR")
-	}
-	return []byte(val.String()), nil
+
+	return stub.GetRow(key, columns)
 }
