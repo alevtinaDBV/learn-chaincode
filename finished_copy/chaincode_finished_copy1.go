@@ -17,30 +17,14 @@ limitations under the License.
 package main
 
 import (
-	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
-}
-type PatientTest struct {
-	GeneralInfo   string `json:"generalInfo"`
-	PersonalInfo  string `json:"personalInfo"`
-	VarianEntries []struct {
-		Date        string `json:"date"`
-		MedicalData string `json:"medicalData"`
-		VarianNode  string `json:"varianNode"`
-	} `json:"varianEntries"`
 }
 
 func main() {
@@ -50,53 +34,16 @@ func main() {
 	}
 }
 
-func EncryptAESCFB(dst, src, key, iv []byte) error {
-	aesBlockEncrypter, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		return err
-	}
-	aesEncrypter := cipher.NewCFBEncrypter(aesBlockEncrypter, iv)
-	aesEncrypter.XORKeyStream(dst, src)
-	return nil
-}
-
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	}
-	data := []byte(`
-	    {
-		"generalInfo": "PID1",
-		"personalInfo" : "somePersonalEncrypted",
-		"varianEntries":
-		[
-		{
-		"varianNode": "var1",
-		"date": "2006-01-02T15:04:05" ,
-		"medicalData": "patient is healthy"	}
-		]
-	}
-	`)
-	var pt PatientTest
-	errUnm := json.Unmarshal(data, &pt)
-	if errUnm != nil {
-		fmt.Printf("Error: %s", errUnm)
-	}
-	patient := &pt
-
-	//	fmt.Printf("generalInfo: %s", patient.GeneralInfo)
-
-	encBuf := new(bytes.Buffer)
-	errrNewEnc := gob.NewEncoder(encBuf).Encode(patient)
-	if errrNewEnc != nil {
-		log.Fatal(errrNewEnc)
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 
-	valueInit := encBuf.Bytes()
+	valueInit := args[1]
 
 	fmt.Println("encodedPatient", valueInit)
-	err := stub.PutState(args[0], valueInit)
+	err := stub.PutState(args[0], []byte(valueInit))
 	if err != nil {
 		return nil, err
 	}
@@ -163,113 +110,26 @@ func (t *SimpleChaincode) addData(stub *shim.ChaincodeStub, prev []byte, args []
 		return nil, err
 	}
 
-	// encode
-	///valueBefCod = args[1]
-	///valueBefEnc := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
-
-	//	err = stub.PutState(key, []byte(valueBefEnc)) //write the variable into the chaincode state
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//encryption
-	///const key16 = "1234567890123456"
-	//	const key161 = "6543210987654321"
-	//const key24 = "123456789012345678901234"
-	//const key32 = "12345678901234567890123456789012"
-	///var keyforAES = key16
-	//	var msg = "message"
-	///var iv = []byte(keyforAES)[:aes.BlockSize] // Using IV same as key is probably bad
-	///var errr error
-	///fmt.Printf("!Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefEnc)
-	// Encrypt
-	///value := make([]byte, len(valueBefEnc))
-	///errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(keyforAES), iv)
-	///fmt.Printf("Encrypting %v %v %s -> %v\n", keyforAES, []byte(iv), valueBefEnc, value)
-	///if errr != nil {
-	///panic(errr)
-	///}
-
 	return nil, nil
 }
 
 func (t *SimpleChaincode) writeNew(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	data := []byte(`
-			{
-		"generalInfo": "PID",
-		"personalInfo" : "somePersonalEncrypted",
-		"varianEntries":
-		[
-		{
-		"varianNode": "var1",
-		"date": "2006-01-02T15:04:05" ,
-		"medicalData": "patient is healthy"	}
-		]
-	}
-	`)
-	var key string
+
+	var key, val string
 	var err error
 	fmt.Println("running write()")
 
-	if len(args) != 3 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 3. name of the key and value to set")
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the key and value to set")
 	}
 
 	key = args[0] //patientID
+	val = args[1]
 
-	fmt.Println("no record found")
-	var newpt PatientTest
-	errUnm2 := json.Unmarshal(data, &newpt)
-	if errUnm2 != nil {
-		fmt.Printf("Error: %s", errUnm2)
-	}
-	patientP := &newpt
-	varEntry := &patientP.VarianEntries[0]
-	patientP.GeneralInfo = "PID"
-	patientP.PersonalInfo = "empty"
-	varEntry.VarianNode = args[1]
-	varEntry.Date = time.Now().String()
-	varEntry.MedicalData = args[2]
-	encBuf := new(bytes.Buffer)
-	errrNewEnc := gob.NewEncoder(encBuf).Encode(patientP)
-	if errrNewEnc != nil {
-		log.Fatal(errrNewEnc)
-	}
-
-	valueInit := encBuf.Bytes()
-
-	fmt.Println("encodedPatient", valueInit)
-	err = stub.PutState(key, valueInit) //write the variable into the chaincode state
+	err = stub.PutState(key, []byte(val)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
 	}
-
-	// encode
-	///valueBefCod = args[1]
-	///valueBefEnc := base64.StdEncoding.EncodeToString([]byte(valueBefCod))
-
-	//	err = stub.PutState(key, []byte(valueBefEnc)) //write the variable into the chaincode state
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//encryption
-	///const key16 = "1234567890123456"
-	//	const key161 = "6543210987654321"
-	//const key24 = "123456789012345678901234"
-	//const key32 = "12345678901234567890123456789012"
-	///var keyforAES = key16
-	//	var msg = "message"
-	///var iv = []byte(keyforAES)[:aes.BlockSize] // Using IV same as key is probably bad
-	///var errr error
-	///fmt.Printf("!Encrypting %v %v  -> %v\n", keyforAES, []byte(iv), valueBefEnc)
-	// Encrypt
-	///value := make([]byte, len(valueBefEnc))
-	///errr = EncryptAESCFB(value, []byte(valueBefEnc), []byte(keyforAES), iv)
-	///fmt.Printf("Encrypting %v %v %s -> %v\n", keyforAES, []byte(iv), valueBefEnc, value)
-	///if errr != nil {
-	///panic(errr)
-	///}
 
 	return nil, nil
 }
