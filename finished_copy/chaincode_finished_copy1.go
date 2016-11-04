@@ -112,7 +112,16 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	if function == "init" {
 		return t.Init(stub, "init", args)
 	} else if function == "writeNew" {
-		return t.writeNew(stub, args)
+		exist, errwriteNew := t.read(stub, args)
+		if errwriteNew != nil {
+			return nil, errwriteNew
+		}
+		if exist != nil {
+			return nil, nil
+		} else {
+			return t.writeNew(stub, args)
+		}
+
 	} else if function == "addData" {
 		exist, errAddData := t.read(stub, args)
 		if errAddData != nil {
